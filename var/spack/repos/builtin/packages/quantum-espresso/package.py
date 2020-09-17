@@ -189,8 +189,11 @@ class QuantumEspresso(Package):
     patch(patch_url, sha256=patch_checksum, when='@6.3+qmcpack')
 
     # ELPA
-    patch('dspev_drv_elpa.patch', when='@6.1.0:+elpa ^elpa@2016.05.004')
-    patch('dspev_drv_elpa.patch', when='@6.1.0:+elpa ^elpa@2016.05.003')
+    patch('dspev_drv_elpa.patch', when='@6.1.0:6.5+elpa ^elpa@2016.05.004')
+    patch('dspev_drv_elpa.patch', when='@6.1.0:6.5+elpa ^elpa@2016.05.003')
+    patch('dspev_drv_elpa_newer.patch', when='@6.6:+elpa ^elpa@2016.05.004')
+    patch('dspev_drv_elpa_newer.patch', when='@6.6:+elpa ^elpa@2016.05.003')
+
 
     # QE UPSTREAM PATCHES
     # QE 6.3 requires multiple patches to fix MKL detection
@@ -327,7 +330,8 @@ class QuantumEspresso(Package):
 
             options.extend([
                 '--with-elpa-include={0}'.format(elpa_include),
-                '--with-elpa-lib={0}'.format(elpa.libs[0])
+                '--with-elpa-lib={0}'.format(elpa.libs[0]),
+                '--with-elpa-version={0}'.format(elpa.version[0])
             ])
 
         if spec.variants['hdf5'].value != 'none':
@@ -360,7 +364,7 @@ class QuantumEspresso(Package):
         if '+epw' in spec:
             make('all', 'epw')
         else:
-            make('all')
+            make('all', 'MANUAL_DFLAGS=-D__FFTW3')
 
         if 'platform=darwin' in spec:
             mkdirp(prefix.bin)

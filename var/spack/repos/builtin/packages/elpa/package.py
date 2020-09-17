@@ -36,6 +36,9 @@ class Elpa(AutotoolsPackage, CudaPackage):
     depends_on('scalapack')
     depends_on('libtool', type='build')
 
+    patch('elpa_aprun.patch', when='@2016.05.004')
+    patch('elpa_aprun.patch', when='@2018.11.001')
+
     def url_for_version(self, version):
         t = 'http://elpa.mpcdf.mpg.de/html/Releases/{0}/elpa-{0}.tar.gz'
         if version < Version('2016.05.003'):
@@ -70,14 +73,16 @@ class Elpa(AutotoolsPackage, CudaPackage):
         options = []
 
         # TODO: --disable-sse-assembly, --enable-sparc64, --enable-neon-arch64
-        simd_features = ['vsx', 'sse', 'avx', 'avx2', 'avx512']
+        simd_features = [('vsx','vsx'), ('sse','sse'), ('sse','sse-assembly'), 
+                ('avx', 'avx'), ('avx2','avx2'), ('avx512','avx512'), 
+                ('asimd','neon-arch64')]
 
         for feature in simd_features:
-            msg = '--enable-{0}' if feature in spec.target else '--disable-{0}'
-            options.append(msg.format(feature))
+            msg = '--enable-{1}' if feature[0] in spec.target else '--disable-{1}'
+            options.append(msg.format(feature[0],feature[1]))
 
         # If no features are found, enable the generic ones
-        if not any(f in spec.target for f in simd_features):
+        if not any(f[0] in spec.target for f in simd_features):
             options.append('--enable-generic')
 
         if '+optflags' in spec:
