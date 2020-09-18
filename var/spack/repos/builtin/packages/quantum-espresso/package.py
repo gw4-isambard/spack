@@ -72,7 +72,6 @@ class QuantumEspresso(Package):
     depends_on('hdf5', when='+qmcpack')
     # TODO: enable building EPW when ~mpi
     depends_on('mpi', when='+epw')
-
     # CONFLICTS SECTION
     # Omitted for now due to concretizer bug
     # MKL with 64-bit integers not supported.
@@ -175,6 +174,8 @@ class QuantumEspresso(Package):
     conflicts('@:6.2,6.5:', when='+qmcpack',
               msg='QMCPACK converter NOT available for this version of QE')
 
+    # Check for consistency of openmp
+    conflicts('^fftw~openmp', when='+openmp')
     # 6.4.1
     patch_url = 'https://raw.githubusercontent.com/QMCPACK/qmcpack/develop/external_codes/quantum_espresso/add_pw2qmcpack_to_qe-6.4.1.diff'
     patch_checksum = '57cb1b06ee2653a87c3acc0dd4f09032fcf6ce6b8cbb9677ae9ceeb6a78f85e2'
@@ -279,9 +280,17 @@ class QuantumEspresso(Package):
                 'FFTW_INCLUDE={0}'.format(join_path(env['MKLROOT'],
                                                     'include/fftw')))
         if '^fftw@3:' in spec:
+            fftw = spec['fftw']
+            fftw_query = []
+            if '+openmp' in fftw:
+                fftw_query.append('openmp')
+            fftw_spec_query = 'fftw'
+            if fftw_query:
+                fftw_spec_query += ':' + ','.join(fftw_query)
+            
             fftw_prefix = spec['fftw'].prefix
             options.append('FFTW_INCLUDE={0}'.format(fftw_prefix.include))
-            fftw_ld_flags = spec['fftw'].libs.ld_flags
+            fftw_ld_flags = spec[fftw_spec_query].libs.ld_flags
             options.append('FFT_LIBS={0}'.format(fftw_ld_flags))
 
         # External BLAS and LAPACK requires the correct link line into
