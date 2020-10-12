@@ -181,7 +181,7 @@ class Gromacs(CMakePackage):
             # Fall back to this for unknown microarchitectures
             options.append('-DGMX_SIMD:STRING=None')
 
-        if '-rdtscp' in self.spec:
+        if '~rdtscp' in self.spec:
             options.append('-DGMX_USE_RDTSCP:BOOL=OFF')
         else:
             options.append('-DGMX_USE_RDTSCP:BOOL=ON')
@@ -214,5 +214,9 @@ class Gromacs(CMakePackage):
         else:
             # we rely on the fftw-api@3
             options.append('-DGMX_FFT_LIBRARY=fftw3')
+            #options.append('-DGMX_BLAS_USER={0}'.
+            #        format(self.spec['blas'].libs[0]))
+            #options.append('-DGMX_LAPACK_USER={0}'.
+            #        format(self.spec['lapack'].libs[0]))
 
         return options
